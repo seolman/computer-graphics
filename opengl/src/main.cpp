@@ -1,6 +1,9 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <iostream>
+#include <string>
+#include <fstream>
+#include <sstream>
 
 void framebufferSizeCallback(GLFWwindow *window, int width, int height) {
   glViewport(0, 0, width, height);
@@ -12,21 +15,18 @@ void processInput(GLFWwindow *window) {
   }
 }
 
-const char *vertexShaderSource = R"(
-#version 330 core
-layout(location = 0) in vec3 aPos;
-void main() {
-    gl_Position = vec4(aPos, 1.0);
-}
-)";
+std::string readFile(const std::string& filePath) {
+  std::ifstream file(filePath);
+  if (!file.is_open()) {
+    std::cerr << "Failed to open file: " << filePath << std::endl;
+    return "";
+  }
 
-const char *fragmentShaderSource = R"(
-#version 330 core
-out vec4 FragColor;
-void main() {
-    FragColor = vec4(1.0, 0.0, 0.0, 1.0);
+  std::stringstream buffer;
+  buffer << file.rdbuf();
+    
+  return buffer.str();
 }
-)";
 
 int main() {
   if (!glfwInit()) {
@@ -56,11 +56,15 @@ int main() {
   glfwSetFramebufferSizeCallback(window, framebufferSizeCallback);
 
   unsigned int vertexShader = glCreateShader(GL_VERTEX_SHADER);
-  glShaderSource(vertexShader, 1, &vertexShaderSource, nullptr);
+  std::string vertexShaderSource = readFile("shader/shader.vert");
+  const char* vertexShaderCode = vertexShaderSource.c_str();
+  glShaderSource(vertexShader, 1, &vertexShaderCode, nullptr);
   glCompileShader(vertexShader);
 
   unsigned int fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-  glShaderSource(fragmentShader, 1, &fragmentShaderSource, nullptr);
+  std::string fragmentShaderSource = readFile("shader/shader.frag");
+  const char* fragmentShaderCode = fragmentShaderSource.c_str();
+  glShaderSource(fragmentShader, 1, &fragmentShaderCode, nullptr);
   glCompileShader(fragmentShader);
 
   unsigned int shaderProgram = glCreateProgram();
@@ -91,7 +95,7 @@ int main() {
   while (!glfwWindowShouldClose(window)) {
     processInput(window);
 
-    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+    glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT);
 
     glUseProgram(shaderProgram);

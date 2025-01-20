@@ -446,3 +446,4 @@ FodyWeavers.xsd
 *.sln.iml
 
 build/
+!**/resource/**/*.obj
